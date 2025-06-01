@@ -1,0 +1,143 @@
+# This file defines parameters specific to Orca.
+#
+# When looking at the AUV from above, the thruster placement is:
+#
+#        front
+#       |======|
+#  |=7↗=|      |=0↖=|
+#  |    |      |    |
+#  | 6• |      | 1• |
+#  |    |      |    |
+#  |    |      |    |
+#  | 5• |      | 2• |
+#  |    |      |    |
+#  |=4↖=|==||==|=3↗=|
+#
+
+/**:
+  ros__parameters:
+    physical:
+      center_of_mass: [0.0, 0.0, 0.035] # m (x,y,z)
+      mass_matrix : [ 30.0, 0.0, 0.0, 0.0, 0.0, 0.6, 0.0, 30.0, 0.0, 0.0, -0.6, 0.3, 0.0, 0.0, 30.0, 0.6, 0.3, 0.0, 0.0, 0.0, 0.6, 0.68, 0.0, 0.0, 0.0, -0.6, 0.3, 0.0, 3.32, 0.0, 0.6, 0.3, 0.0, 0.0, 0.0, 3.34]
+
+    propulsion:
+      dofs:
+        num: 6
+      dimensions:
+        num: 3
+      thrusters:
+        num: 8
+        min: -100
+        max: 100
+        thruster_force_direction: [
+            0.70711,
+            0.00000,
+            0.00000,
+            0.70711,
+            0.70711,
+            0.00000,
+            0.00000,
+            0.70711, # Surge
+            -0.70711,
+            0.00000,
+            0.00000,
+            0.70711,
+            -0.70711,
+            0.00000,
+            0.00000,
+            0.70711, # Sway
+            0.00000,
+            1.00000,
+            1.00000,
+            0.00000,
+            0.00000,
+            1.00000,
+            1.00000,
+            0.00000,
+          ] # Heave
+        thruster_position: [
+            0.41500,
+            0.28400,
+            -0.31800,
+            -0.44900,
+            -0.44900,
+            -0.31800,
+            0.28400,
+            0.41500, # x-position of thrusters
+            0.16900,
+            0.16300,
+            0.16300,
+            0.16900,
+            -0.16900,
+            -0.16300,
+            -0.16300,
+            -0.16900, # y-position of thrusters
+            0.07600,
+            0.08200,
+            0.08200,
+            0.07600,
+            0.07600,
+            0.08200,
+            0.08200,
+            0.07600,
+          ] # z-position of thrusters
+
+        rate_of_change:
+          max: 1 # Maximum rate of change in newton per second for a thruster
+
+        thrust_update_rate: 100.0 # [Hz]
+        watchdog_timeout: 1.0 # [s]
+
+        thruster_to_pin_mapping: [0, 1, 2, 3, 4, 6, 5, 7] # I.e. if thruster_to_pin = [ 7,  6,  5,  4,  3,  2,  1,  0 ] then thruster 0 is pin 1 etc..
+        thruster_direction: [1, 1, -1, -1, 1, -1, -1, -1] # Disclose during thruster mapping (+/- 1)
+        thruster_PWM_min: [1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200] # Minimum PWM value, Recommended: [1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100]
+        thruster_PWM_max: [1800, 1800, 1800, 1800, 1800, 1800, 1800, 1800] # Maximum PWM value, Recommended: [1900, 1900, 1900, 1900, 1900, 1900, 1900, 1900]
+
+    internal_status:
+      power_sense_module_read_rate: 5.0 # Readings/second, Recommended: 5.0
+      voltage_min: 14.5 # [V], Recommended: 14.5
+      voltage_max: 16.8 # [V], Recommended: 16.8
+      power_sense_module_warning_rate: 0.1 # Warnings/second in case something goes bad you have a warning, Recommended: 0.1
+
+      pressure_read_rate: 1.0 # Readings/second, Recommended: 1.0
+      pressure_critical_level: 900.0 # [hPa] If the pressure is over this amount there might be a leakage, Recommended: <1013.25
+      pressure_warning_rate: 0.1 # Warnings/second in case something goes bad you have a warning, Recommended: 0.1
+
+      temperature_read_rate: 0.1 # Readings/second, Recommended: 0.1
+      temperature_critical_level: 90.0 # [*C] If temperature is over this amount the electrical housing might be overheating, Recommended: 90.0
+      temperature_warning_rate: 0.1 # Warnings/second in case something goes bad you have a warning, Recommended: 0.1
+
+    blackbox:
+      data_logging_rate: 5.0 # [loggings/second], Recommended: 5.0 loggings per second
+
+    topics:
+      wrench_input: "wrench_input"
+      thruster_forces: "thruster_forces"
+      pwm_output: "pwm"
+      current: "power_sense_module/current"
+      voltage: "power_sense_module/voltage"
+      pressure: "pressure"
+      temperature: "temperature"
+      joy: "joy"
+      pose: "pose"
+      twist: "twist"
+      operation_mode: "operation_mode"
+      killswitch: "killswitch"
+      aruco_board_pose_camera: "aruco_board_pose_camera"
+      waypoint: "waypoint"
+      waypoint_list: "waypoint_list"
+      guidance:
+        los: "guidance/los"
+        dp: "guidance/dp"
+      fsm:
+        active_controller: "fsm/active_controller"
+
+    action_servers:
+      reference_filter: "reference_filter"
+      los: "los_guidance"
+
+    fsm:
+      docking:
+        docking_station_offset: -1.0
+        num_measurements: 5
+        dock_wait_time: 10.0
