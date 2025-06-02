@@ -51,12 +51,9 @@ Eigen::Matrix3x19d ESKF::calculate_hx() {
     Eigen::Matrix3d R_bn = q.toRotationMatrix();
 
     Eigen::Vector3d v_n = current_nom_state_.vel;
-
-    // Correct derivative w.r.t velocity (nominal state: v_n)
+    
     Hx.block<3, 3>(0, 3) = R_bn.transpose();
 
-    // Derivative w.r.t quaternion (nominal state: q)
-    // Compute partial derivative w.r.t quaternion directly:
     double qw = q.w();
     Eigen::Vector3d q_vec(q.x(), q.y(), q.z());
     Eigen::Matrix3d I3 = Eigen::Matrix3d::Identity();
@@ -65,7 +62,6 @@ Eigen::Matrix3x19d ESKF::calculate_hx() {
     dhdq.col(0) =  2*( qw*v_n + q_vec.cross(v_n) );
     dhdq.block<3,3>(0,1) = 2*( q_vec.dot(v_n)*I3 + q_vec*v_n.transpose() - v_n*q_vec.transpose() - qw*skew(v_n) );
 
-    // Assign quaternion derivative (3x4 block at columns 6:9)
     Hx.block<3,4>(0,6) = dhdq;
 
     return Hx;
@@ -86,7 +82,7 @@ Eigen::Vector3d ESKF::calculate_h() {
     Eigen::Matrix3d R_bn = current_nom_state_.quat.normalized().toRotationMatrix().transpose();
 
     h = R_bn * current_nom_state_.vel;
-    //0.027293, 0.028089, 0.028089, 0.00255253, 0.00270035, 0.00280294,
+
     return h;
 }
 
