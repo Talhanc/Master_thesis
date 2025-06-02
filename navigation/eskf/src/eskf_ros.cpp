@@ -93,22 +93,18 @@ void ESKFNode::imu_callback(const sensor_msgs::msg::Imu::SharedPtr msg) {
 
     imu_meas_.gyro = R_imu_eskf_ * raw_gyro;
 
-    // Time the IMU update
     auto start_time = std::chrono::high_resolution_clock::now();
     std::tie(nom_state_, error_state_) = eskf_->imu_update(imu_meas_, dt);
     auto end_time = std::chrono::high_resolution_clock::now();
     
-    // Compute execution time in milliseconds
     double execution_time_ms = std::chrono::duration<double, std::milli>(end_time - start_time).count();
     
-    // Update statistics
     imu_timing_stats_.count++;
     imu_timing_stats_.mean = imu_timing_stats_.mean + 
                             (execution_time_ms - imu_timing_stats_.mean) / imu_timing_stats_.count;
     imu_timing_stats_.min = std::min(imu_timing_stats_.min, execution_time_ms);
     imu_timing_stats_.max = std::max(imu_timing_stats_.max, execution_time_ms);
     
-    // Log timing stats every 100 IMU updates
     if (imu_timing_stats_.count % 100 == 0) {
         spdlog::info("IMU update timing (ms) - Mean: {:.3f}, Min: {:.3f}, Max: {:.3f}, Count: {}",
                     imu_timing_stats_.mean, imu_timing_stats_.min, 
@@ -117,7 +113,6 @@ void ESKFNode::imu_callback(const sensor_msgs::msg::Imu::SharedPtr msg) {
 }
 
 void ESKFNode::dvl_callback(const geometry_msgs::msg::TwistWithCovarianceStamped::SharedPtr msg) {
-    // Initialize timing stats on first call
     if (!dvl_timing_stats_.count) {
         dvl_timing_stats_ = {0.0, std::numeric_limits<double>::max(), 0.0, 0}; // mean, min, max, count
     }
@@ -128,22 +123,18 @@ void ESKFNode::dvl_callback(const geometry_msgs::msg::TwistWithCovarianceStamped
         msg->twist.covariance[6], msg->twist.covariance[7], msg->twist.covariance[8],
         msg->twist.covariance[12], msg->twist.covariance[13], msg->twist.covariance[14];
 
-    // Time the DVL update
     auto start_time = std::chrono::high_resolution_clock::now();
     std::tie(nom_state_, error_state_) = eskf_->dvl_update(dvl_meas_);
     auto end_time = std::chrono::high_resolution_clock::now();
     
-    // Compute execution time in milliseconds
     double execution_time_ms = std::chrono::duration<double, std::milli>(end_time - start_time).count();
     
-    // Update statistics
     dvl_timing_stats_.count++;
     dvl_timing_stats_.mean = dvl_timing_stats_.mean + 
                            (execution_time_ms - dvl_timing_stats_.mean) / dvl_timing_stats_.count;
     dvl_timing_stats_.min = std::min(dvl_timing_stats_.min, execution_time_ms);
     dvl_timing_stats_.max = std::max(dvl_timing_stats_.max, execution_time_ms);
     
-    // Log timing stats every 10 DVL updates (since DVL typically comes at a slower rate than IMU)
     if (dvl_timing_stats_.count % 10 == 0) {
         spdlog::info("DVL update timing (ms) - Mean: {:.3f}, Min: {:.3f}, Max: {:.3f}, Count: {}",
                     dvl_timing_stats_.mean, dvl_timing_stats_.min, 
@@ -171,13 +162,10 @@ void ESKFNode::publish_odom() {
     odom_msg.twist.twist.linear.y = nom_state_.vel.y();
     odom_msg.twist.twist.linear.z = nom_state_.vel.z();
 
-    // Add bias values to the angular velocity field of twist
     odom_msg.twist.twist.angular.x = nom_state_.accel_bias.x();
     odom_msg.twist.twist.angular.y = nom_state_.accel_bias.y();
     odom_msg.twist.twist.angular.z = nom_state_.accel_bias.z();
 
-    // If you also want to include gyro bias, you could add it to the covariance
-    // matrix or publish a separate topic for biases
 
     odom_msg.header.stamp = this->now();
     odom_pub_->publish(odom_msg);
